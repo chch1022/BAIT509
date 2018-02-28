@@ -1,0 +1,189 @@
+---
+title: "BAIT 509 Class Meeting 01"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    html_document:
+      keep_md: yes
+      number_sections: yes
+      theme: cerulean
+      toc: yes
+      toc_depth: 2
+      toc_float: yes
+    toc: yes
+date: "Monday, February 26, 2018"
+subtitle: Introduction
+---
+
+```{r, echo=FALSE}
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ISLR))
+opts_chunk$set(echo=FALSE, fig.width=5, fig.height=3, fig.align="center")
+```
+
+# In-class Exercises: Irreducible Error
+
+Note: if you don't have `git` set up on your computer (this is different from github), for now, just drag-and-drop your R file to your github repo to add it to your repo. 
+
+## Oracle regression
+
+Suppose you have two independent predictors, $X_1, X_2 \sim N(0,1)$, and the conditional distribution of $Y$ is
+$$ Y \mid (X_1=x_1, X_2=x_2) \sim N(5-x_1+2x_2, 1). $$
+From this, it follows that:
+
+- The conditional distribution of $Y$ given _only_ $X_1$ is
+$$ Y \mid X_1=x_1 \sim N(5-x_1, 5). $$
+- The conditional distribution of $Y$ given _only_ $X_2$ is
+$$ Y \mid X_2=x_2 \sim N(5+2x_2, 2). $$
+- The (marginal) distribution of $Y$ (not given any of the predictors) is
+$$ Y \sim N(0, 6). $$
+
+The following R function generates data from the joint distribution of $(X_1, X_2, Y)$. It takes a single positive integer as an input, representing the sample size, and returns a `tibble` (a fancy version of a data frame) with columns named `x1`, `x2`, and `y`, corresponding to the random vector $(X_1, X_2, Y)$, with realizations given in the rows. 
+
+```{r, echo=TRUE}
+genreg <- function(n){
+    x1 <- rnorm(n)
+    x2 <- rnorm(n)
+    eps <- rnorm(n)
+    y <- 5-x1+2*x2+eps
+    tibble(x1=x1, x2=x2, y=y)
+}
+```
+
+1. Generate data -- as much as you'd like.
+```{r}
+library(dplyr)
+library(tidyverse)
+library(rmarkdown)
+dat <- genreg(1000)
+```
+
+2. For now, ignore the $Y$ values. Use the means from the distributions listed above to predict $Y$ under four circumstances:
+    1. Using both the values of $X_1$ and $X_2$.
+    2. Using only the values of $X_1$.
+    3. Using only the values of $X_2$.
+    4. Using neither the values of $X_1$ nor $X_2$. (Your predictions in this case will be the same every time -- what is that number?)
+```{r}
+dat <- mutate(dat,
+       yhat=5,
+       yhat1=5-x1,
+       yhat2=5+2*x2,
+       yhat12=5-x1+2*x2)
+dat
+```
+
+3. Now use the actual outcomes of $Y$ to calculate the mean squared error (MSE) for each of the four situations. 
+    - Try re-running the simulation with a new batch of data. Do your MSE's change much? If so, choose a larger sample so that these numbers are more stable.
+```{r}
+(mse <- mean(dat$yhat - dat$y)^2)
+(mse1 <- mean(dat$yhat1 - dat$y)^2)
+(mse2 <- mean(dat$yhat2 - dat$y)^2)
+(mse12 <- mean(dat$yhat12 - dat$y)^2)
+```
+
+4. Order the situations from "best forecaster" to "worst forecaster". Why do we see this order?
+
+## Oracle classification
+
+Consider a categorical response that can take on one of three categories: _A_, _B_, or _C_. The conditional probabilities are:
+$$ P(Y=A \mid X=x) = 0.2, $$
+$$ P(Y=B \mid X=x) = 0.8/(1+e^{-x}), $$
+
+To help you visualize this, here is a plot of $P(Y=B \mid X=x)$ vs $x$ (notice that it is bounded above by 0.8, and below by 0).
+
+```{r}
+ggplot(tibble(x=c(-7, 7)), aes(x)) +
+    stat_function(fun=function(x) 0.8/(1+exp(-x))) +
+    ylim(c(0,1)) +
+    geom_hline(yintercept=c(0,0.8), linetype="dashed", alpha=0.5) +
+    theme_bw() +
+    labs(y="P(Y=B|X=x)")
+```
+
+Here's an R function to generate data for you, where $X\sim N(0,1)$. As before, it accepts a positive integer as its input, representing the sample size, and returns a tibble with column names `x` and `y` corresponding to the predictor and response. 
+
+```{r, echo=TRUE}
+gencla <- function(n) {
+    x <- rnorm(n) 
+    pB <- 0.8/(1+exp(-x))
+    y <- map_chr(pB, function(x) 
+            sample(LETTERS[1:3], size=1, replace=TRUE,
+                   prob=c(0.2, x, 1-x)))
+    tibble(x=x, y=y)
+}
+```
+
+
+1. Calculate the probabilities of each category when $X=1$. What about when $X=-2$? With this information, what would you classify $Y$ as in both cases?
+    - BONUS: Plot these two conditional distributions. 
+```{r}
+gencla <- function(n) {
+    x <- rnorm(n) 
+    pB <- 0.8/(1+exp(-x))
+    y <- map_chr(pB, function(x) 
+            sample(LETTERS[1:3], size=1, replace=TRUE,
+                   prob=c(0.2, x, 1-x)))
+    tibble(x=x, y=y)
+}
+
+##X=1
+(pB <- 0.8/(1+exp(-1)))
+(pA <- 0.2)
+(pC <- 1-pB-pA)
+
+##X-2
+(pB <- 0.8/(1+exp(-2)))
+(pA <- 0.2)
+(pC <- 1-pB-pA)
+
+```
+When $X=1$, I would classify $Y$ as _B_. When $X=-2$, I would classfiy $Y$ as _C_
+
+2. In general, when would you classify $Y$ as _A_? _B_? _C_?
+If $x<0$, _C_
+If $x>0$, _B_
+When $x=0$, there is no answer to this question. Since there is not a mode.
+3. Generate data -- as much as you'd like.
+```{r}
+dat2 <- gencla(1000)
+```
+4. For now, ignore the $Y$ data. Make predictions on $Y$ from $X$.
+```{r}
+dat2 <- mutate(dat2,
+               yhat = sapply(x, function(x_)
+                 if (x<0)  "C" else "B"))
+dat2
+```
+5. Now, using the true $Y$ values, calculate the error rate. What type of accuracy do you get?
+```{r}
+1-mean(dat2$yhat == dat2$y)
+```
+
+## (BONUS) Random prediction
+
+You might think that, if we know the conditional distribution of $Y$ given some predictors, why not take a random draw from that distribution as our prediction? After all, this would be simulating nature.
+
+The problem is, this prediction doesn't do well. 
+
+Re-do the regression exercise above (feel free to only do Case 1 to prove the point), but this time, instead of using the mean as a prediction, use a random draw from the conditional distributions. Calculate the MSE. How much worse is it? How does this error compare to the original Case 1-4 errors?
+
+## (BONUS) A more non-standard regression
+
+The regression example given above is your perfect, everything-is-linear-and-Normal world. Let's see an example of a joint distribution of $(X,Y)$ that's _not_ Normal. 
+
+The joint distribution in question can be respresented as follows:
+$$ Y|X=x \sim \text{Beta}(e^{-x}, 1/x), $$
+$$ X \sim \text{Exp}(1). $$
+
+Write a formula that gives a prediction of $Y$ from $X$ (you might have to look up the formula for the mean of a Beta random variable). Generate data, and evaluate the MSE. Plot the data, and the conditional mean as a function of $x$ overtop. 
+
+## (BONUS) Oracle MSE
+
+What statistical quantity does the mean squared error (MSE) reduce to when we know the true distribution of the data? Hint: if each conditional distribution has a certain variance, what then is the MSE?
+
+What is the error rate in the classification setting?
+
+
+
