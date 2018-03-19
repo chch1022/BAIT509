@@ -2,8 +2,6 @@ Bagging is a special case of random forests under which case?
 
 Bagging is a special case of random forests when m = p
 
-
-
 What are the hyperparameters we can control for random forests?
 
 n_estimators = number of trees in the foreset
