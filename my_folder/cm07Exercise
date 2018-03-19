@@ -14,12 +14,12 @@ bootstrap = method for sampling data points (with or without replacement)
 
 Suppose you have the following paired data of (x,y): (1,2), (1,5), (2,0). Which of the following are valid bootstrapped data sets? Why/why not?
 (1,0), (1,2), (1,5) - Not valid, (1,0) does not exist in the original data
-(1,2), (2,0) - Valid
+(1,2), (2,0) - Not valid, the sample size does not match with the original data set
 (1,2), (1,2), (1,5) - Valid 
 
 
 For each of the above valid bootstapped data sets, which observations are out-of-bag (OOB)?
-For (1,2), (2,0): (1,5) is out-of-bag
+
 For (1,2),(1,2),(1,5): (2,0) is out-of-bag
 
 
