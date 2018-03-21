@@ -1,0 +1,13 @@
+1. Candidate A seems to be better fit in this case. 
+Pros: While both A and B have an average productivity 75, candidate A has low variance, hence candidate A has a higher chance to score 75. 
+We are pretty sure that Candidate A's score will be around 75. For candidate B, although we know his/her expected score will be around 75,
+we are less certain what his/her true score is. We are taking less risk by hiring candidate A. 
+Cons: Candidate A has lower chance to hit productivity score of more than 75 comparing to candidate B. It is possible for Candidate B to
+score as high as 80, but it is almost impossible for candidate A.
+
+2. Candidate B seems to be a good fit in this case. 
+Pros: In general, candidate B has a higher productivity.
+The plot only serves as a tool when choosing the candidate. In reality, we need to consider from a more comprehensive aspects
+
+3. The probabilisitic forecast is biased. While all true values are above zero, the probabilistic forecasts suggests that there are chances
+that the true value could be negative, we might want to tune the parameters.
