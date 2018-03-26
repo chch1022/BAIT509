@@ -15,7 +15,7 @@ Observations that are penalized by 2.25 points: 10
 Total penalty = 0.25+0.25+1.25+1.75+2.25=5.75
 
 5. Can I choose a bigger margin if my total allowable penalty is 6?
-It depends. it is allowed when increasing margin width increases the error.
+Yes, because the penalty right now is 5.75, it is allowable to increase the penalty by 0.25
 
 6. Are the data separable? If so, what are the support vectors?
 Yes, the support vector are 4,8,9
